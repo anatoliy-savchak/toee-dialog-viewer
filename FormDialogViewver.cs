@@ -45,7 +45,7 @@ namespace DialogViewer
                     foreach (DialogLine dialogLine in dialog.lines)
                     {
                         if (dialogLine.IsPCLine) continue;
-                        AddSubdialog(dialogLine.Key, null);
+                        AddSubdialog(dialogLine.Key, null, null);
                     }
                 }
                 finally
@@ -55,31 +55,32 @@ namespace DialogViewer
             }
         }
 
-        protected bool AddSubdialog(int key, TreeNode parent)
+        protected bool AddSubdialog(int key, TreeNode parent, TreeNode root)
         {
             if (dialog == null) return false;
             int keyIndex = dialog.GetKeyIndex(key);
             if (keyIndex < 0) return false;
-            TreeNode root = null;
             for (int i = keyIndex; i < dialog.lines.Length; i++)
             {
                 DialogLine dialogLine = dialog.lines[i];
                 if (i == keyIndex)
                 {
-                    if (parent == null)
+                    if (root == null)
                     {
-                        root = this.tvContent.Nodes.Add(DialogLine2NodeText(dialogLine));
+                        if (parent == null)
+                            root = this.tvContent.Nodes.Add(DialogLine2NodeText(dialogLine));
+                        else
+                            root = parent.Nodes.Add(DialogLine2NodeText(dialogLine));
                         root.Tag = dialogLine;
                     }
-                    else root = parent;
                 } else
                 {
                     if (!dialogLine.IsPCLine) break;
                     TreeNode child = root.Nodes.Add(DialogLine2NodeText(dialogLine));
                     child.Tag = dialogLine;
-                    if (child.Level < 10)
+                    if ((dialogLine.AnswerKey > 0) && (child.Level < 10))
                     {
-                        AddSubdialog(dialogLine.Key, child);
+                        AddSubdialog(dialogLine.AnswerKey, child, null);
                     }
                 }
             }
@@ -103,7 +104,7 @@ namespace DialogViewer
         {
             if ((e.Node.Nodes.Count == 0) && (e.Node.Tag != null))
             {
-                AddSubdialog(((DialogLine)(e.Node.Tag)).Key, e.Node);
+                AddSubdialog(((DialogLine)(e.Node.Tag)).Key, e.Node, null);
             }
         }
 
